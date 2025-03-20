@@ -14,7 +14,8 @@ Authorizes the API requests submitted by the authenticated user.
 Software modules that validate and/or modify user requests.
 
 The following image depicts the above stages:
-![photos](asset/1.PNG)
+
+![photos](asset/1.png)
 
 
 ## Authentication
@@ -125,7 +126,6 @@ rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
   verbs: ["get", "watch", "list"]
-
 ```
 
 The manifest defines a pod-reader role, which has access only to read the Pods of lfs158 Namespace.
@@ -148,7 +148,6 @@ rules:
   - '*' # All non resource URLs, such as "/healthz"
   verbs:
   - '*' # All operations
-
 ```
 
 The manifest defines a cluster-admin cluster role that is fully permissive.
@@ -156,7 +155,7 @@ The manifest defines a cluster-admin cluster role that is fully permissive.
 Once the role is created, we can bind it to users with a RoleBinding object. There are two kinds of RoleBindings:
 
 * RoleBinding
-* 
+  
 It allows us to bind users to the same namespace as a Role. We could also refer to a ClusterRole in RoleBinding, which would grant permissions to Namespace resources defined in the ClusterRole within the RoleBinding’s Namespace.
 
 * ClusterRoleBinding
@@ -180,7 +179,6 @@ roleRef:
   kind: Role
   name: pod-reader
   apiGroup: rbac.authorization.k8s.io
-
 ```
 
 The manifest defines a bind between the pod-reader Role and user bob, to restrict the user to only read the Pods of the lfs158 Namespace.
@@ -200,7 +198,6 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: system:admins
-
 ```
 
 The manifest defines a bind between the cluster-admin ClusterRole and all users of the group system:admins.
@@ -209,6 +206,7 @@ To enable the RBAC mode, we start the API server with the --authorization-mode=R
 
 
 ## Authentication and Authorization Demo Guide (1)
+
 This exercise guide assumes the following environment, which by default uses the certificate and key from /var/lib/minikube/certs/, and RBAC mode for authorization:
 
 Minikube v1.32.0
@@ -255,25 +253,26 @@ users:
 ```
 
 # Authentication and Authorization Demo Guide (2)
+
 Create lfs158 namespace:
 
 ```bash
 $ kubectl create namespace lfs158
 ```
+
 Create the rbac directory and cd into it:
 
 ```bash
 $ mkdir rbac
 $ cd rbac/
-
 ```
+
 Create a new user bob on your workstation, and set bob's password as well (the system will prompt you to enter the password twice) :
 
 ```bash
 ~/rbac$ sudo useradd -s /bin/bash bob
 
 ~/rbac$ sudo passwd bob
-
 ```
 
 Create a private key for the new user bob with the openssl tool, then create a certificate signing request for bob with the same openssl tool:
@@ -297,7 +296,6 @@ Create a YAML definition manifest for a certificate signing request object, and 
 
 ```bash
 ~/rbac$ vim signing-request.yaml
-
 ```
 
 ```yaml
@@ -329,7 +327,6 @@ LS0tLS1CRUd...1QtLS0tLQo=
 
 ```bash
 ~/rbac$ vim signing-request.yaml
-
 ```
 
 
@@ -353,14 +350,12 @@ Create the certificate signing request object, then list the certificate signing
 
 ```bash
 ~/rbac$ kubectl create -f signing-request.yaml
-
 ```
 
 certificatesigningrequest.certificates.k8s... create
 
 ```bash
 ~/rbac$ kubectl get csr
-
 ```
 
 NAME AGE SIGNERNAME REQUESTOR CONDITION
@@ -371,14 +366,12 @@ Approve the certificate signing request object, then list the certificate signin
 
 ```bash
 ~/rbac$ kubectl certificate approve bob-csr
-
 ```
 
 certificatesigningrequest.certificates.k8s... approved
 
 ```bash
 ~/rbac$ kubectl get csr
-
 ```
 
 NAME AGE SIGNERNAME REQUESTOR CONDITION
@@ -394,7 +387,6 @@ Extract the approved certificate from the certificate signing request, decode it
   base64 -d > bob.crt
 
 ~/rbac$ cat bob.crt
-
 ```
 
 -----BEGIN CERTIFICATE-----
@@ -408,7 +400,6 @@ Configure the kubectl client's configuration manifest with user bob's credential
 ```bash
 ~/rbac$ kubectl config set-credentials bob \
   --client-certificate=bob.crt --client-key=bob.key
-
 ```
 
 User "bob" set.
@@ -428,9 +419,7 @@ View the contents of the kubectl client's configuration manifest again, observin
 
 ```bash
 ~/rbac$ kubectl config view
-
 ```
-
 
 ```yaml
 apiVersion: v1
@@ -463,7 +452,6 @@ users:
   user:
     client-certificate: /home/student/rbac/bob.crt
     client-key: /home/student/rbac/bob.key
-
 ```
 
 # Authentication and Authorization Demo Guide (5)
@@ -506,12 +494,10 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "watch", "list"]
-
 ```
 
 ```bash
 ~/rbac$ kubectl create -f role.yaml
-
 ```
 
 role.rbac.authorization.k8s.io/pod-reader created
@@ -629,11 +615,11 @@ cat bob.csr | base64 | tr -d '\n','%'
 
 Output will looks like:
 
-![pic](asset/2.PNG)
+![pic](asset/2.png)
 
 yaml file will like this:
 
-![pic](asset/3.PNG)
+![pic](asset/3.png)
 
 
 ```yaml
@@ -667,7 +653,7 @@ Once the signing request is created let's list certificate signing requests to e
 
 ```
 
-![pic](asset/4.PNG)
+![pic](asset/4.png)
 
 So bob has a certificate signing request requested by the minikube-user, and it is still in a Pending state.
 
@@ -678,7 +664,7 @@ And now the next step is to approve bob's certificate signing request.
 
 ```
 
-![pic](asset/5.PNG)
+![pic](asset/5.png)
 
 Now see the certificate signing request again.
 
@@ -702,7 +688,7 @@ kubectl get csr bob-csr -o jsonpath='{.status.certificate}' | base64 -d > bob.cr
 
 So bob.crt is bob's certificate file.
 
-![pic](asset/7.PNG)
+![pic](asset/7.png)
 
 And this is bob's certificate.
 
@@ -735,9 +721,9 @@ kubectl config view
 
 ```
 
-![pic](asset/8.PNG)
+![pic](asset/8.png)
 
-![pic](asset/9.PNG)
+![pic](asset/9.png)
 
 We will see that originally we only had the minikube user. Now we have an additional user, user bob. Then in the context area, we have the original context, the minikube context and the new bob context. While the cluster is just one, the minikube cluster.
 
@@ -748,7 +734,7 @@ So let's create a new deployment in our new namespace.
 
 ```
 
-![pic](asset/10.PNG)
+![pic](asset/10.png)
 
 So a new deployment nginex in the LFS158 namespace.
 
@@ -759,7 +745,7 @@ So from the bob context, so assuming it's bob's identity, let's try to list pods
 
 ```
 
-![pic](asset/11.PNG)
+![pic](asset/11.png)
 
 Now because bob doesn't have any permissions in the cluster, access is forbidden. So bob cannot do anything at this moment.
 
@@ -796,7 +782,7 @@ We will create this role, with the 'kubectl create' command.
 
 Expected output.
 
-![pic](asset/12.PNG)
+![pic](asset/12.png)
 
 And then what we are going to do next is create a role binding.
 
@@ -840,7 +826,7 @@ And one more time we validate.To see whether from the bob context, we can list p
 
 ```
 
-![pic](asset/13.PNG)
+![pic](asset/13.png)
 
 And as it turns out, that after the access control policy has been set and user bob has been granted some restricted permissions in the cluster, now user bob is able to list pods in the LFS158 namespace.
 
@@ -873,7 +859,7 @@ So let's go to the command line and let's get started. So first I want to see wh
 
 So we run the 'kubectl describe pod' command and will describe the kube-apiserver of the minikube cluster, and we will grep for admission.
 
-![pics](asset/14.PNG)
+![pics](asset/14.png)
 
 So the return is the --enable-admission-plugins option of the API server. And we get to see the list of admission plugins that are enabled by default.
 
@@ -887,11 +873,11 @@ Okay. So without it, we are going to run a simple pod. We'll call it "admitted".
 
 Our --image-pull-policy that we are defining will be "IfNotPresent". So the pod specification will show this imagePullPolicy.
 
-![pics](asset/15.PNG)
+![pics](asset/15.png)
 
 So pod admitted has been created. I can validate this with 'kubectl get pods'.
 
-![pics](asset/16.PNG)
+![pics](asset/16.png)
 
 So I see that "admitted" is in a Running state. And if I want to verify its imagePullPolicy, I can run the 'kube control get pod' in a yaml output. And I will grep for the imagepull entry.
 
@@ -901,7 +887,7 @@ kubectl get pod admitted -o yaml | grep -i imagepull
 
 ```
 
-![pics](asset/17.PNG)
+![pics](asset/17.png)
 
 And here it is, the imagePullPolicy of my "admitted" pod is still "IfNotPresent". It is the same as defined in the 'kubectl run' command.
 
@@ -931,7 +917,7 @@ $ sudo cp /etc/kubernetes/manifests/kube-apiserver.yaml /kube-apiserver-yaml-bac
 
 In case I make changes that are unwanted and I delete the wrong thing, I modify something that I did not intend to do, and my API server no longer starts, no longer operates as expected, I can always revert back to this copy which supposedly it's the unaltered original version of the API yaml file.
 
-![pics](asset/18.PNG)
+![pics](asset/18.png)
 
 So I strongly, strongly recommend that you copy this file, that you make a backup of it.
 
@@ -943,11 +929,11 @@ $ sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
 
 And now all we need to do is go into an insert mode, so I'm pressing the "i" key, scroll down to the enable-admission-plugins line.
 
-![pics](asset/19.PNG)
+![pics](asset/19.png)
 
 So this, this one here and then go all the way to the end.And then, after the last ResourceQuota admission plugin type the AlwaysPullImages plugin but make sure that you're inserting a comma between the ResourceQuota and the AlwaysPullImages. So the comma is right here. And then there's nothing after the PullImages.
 
-![pics](asset/20.PNG)
+![pics](asset/20.png)
 
 
 And as of now, we're done with the minikube VM. So we exit, we return to our workstation.
@@ -955,7 +941,7 @@ And as of now, we're done with the minikube VM. So we exit, we return to our wor
 But now since we modified the API server's definition manifest, the node controller of the control plane node will force restart the API server.
 
 
-![pics](asset/21.PNG)
+![pics](asset/21.png)
 
 
 So right now the API server is offline. It is being restarted by the node controller and while it is restarted, it no longer responds to kubectl commands.
@@ -964,13 +950,13 @@ So we need to give it around 20 seconds, maybe 15, maybe 30 depending on the spe
 
 And the first time when it comes back and it responds in a positive fashion, we will see that some of the pods, they may be in Running or Pending state or maybe other states, it's just for the cluster to readjust to the modified API server.
 
-![pics](asset/22.PNG)
+![pics](asset/22.png)
 
 So give it maybe another 10 seconds, another 15 seconds, and try the 'kubectl get pods' from all namespaces, command.
 
 And when you see that consistently every pod in the kube-system namespace is in a Running state then it is safe for us to proceed.
 
-![pics](asset/23.PNG)
+![pics](asset/23.png)
 
 So at this point, I want to validate that my API server runs with my AlwaysPullImages controller, admission controller enabled.
 
@@ -978,7 +964,7 @@ So at this point, I want to validate that my API server runs with my AlwaysPullI
 ~$ kubectl -n kube-system describe pod kube-apiserver-minikube | grep -i admission
 ```
 
-![pics](asset/24.PNG)
+![pics](asset/24.png)
 
 And it seems that the same output that before did not include the Alwayspullimages; now it does.
 
@@ -990,12 +976,12 @@ So I want to run a new pod, 'kubectl run'. This will be a mutated pod. So origin
 ```bash
 ~$ kubectl run admitted --image=nginx --image-pull-policy=IfNotPresent
 ```
-![pics](asset/25.PNG)
+![pics](asset/25.png)
 
 
 So I run this. I run the 'kubectl get pods' command.
 
-![pics](asset/26.PNG)
+![pics](asset/26.png)
 
 
 And it seems that both pods are running the admitted and the mutated one.
@@ -1019,6 +1005,6 @@ But what about the first one, the "admitted" pod. So let's run the command that 
 ```
 
 
-![pics](asset/27.PNG)
+![pics](asset/28.png)
 
 And it seems that the "admitted" pod, deployed prior to the enablement of the AlwaysPullImages admission controller is not modified. So it runs based on its original configuration.
